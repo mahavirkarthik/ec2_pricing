@@ -1,0 +1,76 @@
+service: pricing_calculator_api  # Name of your service
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: us-east-1 # Specify the AWS region
+  timeout: 60  
+  stage: dev  # Specify the stage (e.g., dev, prod)
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "pricing:GetProducts"
+      Resource: "*"
+
+functions:
+  getPricing:
+    handler: getEC2InstancePricing.lambda_handler  # `handler` is the name of your Python file without `.py`
+    events:
+      - http:
+          path: pricing  # API Gateway endpoint
+          method: get
+          request:
+            parameters:
+              querystrings:
+                accountId: true
+                region: false
+                instanceFamily: true
+    environment:
+      AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+
+plugins:
+  - serverless-offline
+
+package:
+  exclude:
+    - node_modules/**
+    - venv/**
+    - .git/**
+    - .github/**
+    - README.md
+    - tests/**
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux  # Use Docker to build dependencies on non-Linux systems
+    zip: true
+
+
+# service: pricing_calculator_api
+
+# provider:
+#   name: aws
+#   runtime: python3.12
+#   region: us-east-1  # Specify the AWS region
+#   environment:
+#     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+#   plugins:
+#     - serverless-offline
+#   iamRoleStatements:
+#     - Effect: Allow
+#       Action:
+#         - "pricing:GetProducts"
+#       Resource: "*"
+
+# functions:
+#   getEC2Pricing:
+#     handler: getEC2InstancePricing.lambda_handler
+#     events:
+#       - http:
+#           path: ec2/pricing
+#           method: get
+#           request:
+#             parameters:
+#               querystrings:
+#                 instanceType: true  # Require instanceType as query param
+#     timeout: 10  # Optional: Increase Lambda timeout if needed
